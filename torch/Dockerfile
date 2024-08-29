@@ -6,7 +6,7 @@ USER root
 RUN apt-get update \
   && apt-get -y install build-essential libssl-dev git libffi-dev libgfortran5 pkg-config cmake gcc
 
-ADD --keep-git-dir=true https://github.com/Netanelshoshan/freqAI-LSTM.git /opt/freqai-lstm
+ADD --keep-git-dir=true https://github.com/AlexCryptoKing/freqailstm.git /opt/freqai-lstm
 WORKDIR /opt/freqai-lstm
 
 RUN mkdir -p /freqtrade/user_data/strategies /freqtrade/user_data/freqaimodels \
