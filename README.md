@@ -6,11 +6,6 @@ A regression model and trading strategy for  [FreqAI](https://www.freqtrade.io/e
 from [freqtrade](https://github.com/freqtrade/freqtrade), a crypto trading bot.
 
 
-⚠️ **Since problems have started to arise with the latest versions of Freqtrade (> 2024.02), I will be porting this
-model, and potentially other models, to PyTorch. PyTorch has better GPU support across platforms and allows for faster
-development since it eliminates the need to edit the core of freqAI (maybe just increasing the timeframe limit from 5
-minutes to a bigger one).** ⚠️
-
 ## Overview
 
 This project aims to develop a trading model that utilizes a dynamic weighting and aggregate scoring system to make more informed trading decisions. The model was initially built using TensorFlow and the Keras API, but has been ported to PyTorch to take advantage of its better GPU support across platforms and faster development process.
@@ -20,7 +15,7 @@ This project aims to develop a trading model that utilizes a dynamic weighting a
 1. Clone the repository
 
 ```shell
-git clone https://github.com/Netanelshoshan/freqAI-LSTM.git
+git clone https://github.com/AlexCryptoKing/freqailstm.git
 ```
 2. Copy the files to the freqtrade directory
 
@@ -32,9 +27,9 @@ cp torch/PyTorchLSTMRegressor.py <freqtrade dir>/user_data/freqaimodels/
 cp config-example.json <freqtrade dir>/user_data/config.json
 cp ExampleLSTMStrategy.py <freqtrade dir>/user_data/strategies/
 ```
-3. Download the data
+3. Download the data minimum 1 Month!
 ```shell
-freqtrade download-data -c user_data/config-torch.json --timerange 20230101-20240529 --timeframe 15m 30m 1h 2h 4h 8h 1d --erase
+freqtrade download-data -c user_data/config-torch.json --timerange 20240701-20240801 --timeframe 15m 30m 1h 2h 4h 8h 1d --erase
 ```
 4. Edit "freqtrade/configuration/config_validation.py"
 ```python
@@ -42,16 +37,16 @@ freqtrade download-data -c user_data/config-torch.json --timerange 20230101-2024
 def _validate_freqai_include_timeframes()
 ...
     if freqai_enabled:
-        main_tf = conf.get('timeframe', '5m') -> change to '1h' or the **min** timeframe of your choosing
+        main_tf = conf.get('timeframe', '5m') -> change to '15m/30m/1h' or the **min** timeframe of your choosing
 ```
 5. Make sure your package is edible after the the changes
 ```shell
 pip install -e .
 ```
 
-7. Run the backtest
+7. Run the backtest chosse a timeframe minimum 2-3months
 ```shell
-freqtrade backtesting -c user_data/config-torch.json --breakdown day week month --timerange 20240301-20240401 
+freqtrade backtesting -c user_data/config-torch.json --breakdown day week month --timerange 20240601-20240801 
 ````
 
 ## Quick Start with docker
@@ -59,25 +54,23 @@ freqtrade backtesting -c user_data/config-torch.json --breakdown day week month 
 1. Clone the repository
 
 ```shell
-git clone https://github.com/Netanelshoshan/freqAI-LSTM.git
+git clone [https://github.com/Netanelshoshan/freqAI-LSTM.git](https://github.com/AlexCryptoKing/freqailstm.git)
 ```
 2. Build local docker images
 
 ```shell
-cd freqAI-LSTM
+cd freqailstm
 docker build -f torch/Dockerfile  -t freqai .
 ```
 3. Download data and Run the backtest
 ```
-docker run -v ./data:/freqtrade/user_data/data  -it freqai  download-data -c user_data/config-torch.json --timerange 20230101-20240529 --timeframe 15m 30m 1h 2h 4h 8h 1d --erase
+docker run -v ./data:/freqtrade/user_data/data  -it freqai  download-data -c user_data/config-torch.json --timerange 2020601-2024081 --timeframe 15m 30m 1h 2h 4h 8h 1d --erase
 
-docker run -v ./data:/freqtrade/user_data/data  -it freqai  backtesting -c user_data/config-torch.json --breakdown day week month --timerange 20240301-20240401 
+docker run -v ./data:/freqtrade/user_data/data  -it freqai  backtesting -c user_data/config-torch.json --breakdown day week month --timerange 20240701-20240801 
 ```
 
-
-
-
 ## Model Architecture
+config.json 
 
 The core of the model is a Long Short-Term Memory (LSTM) network, which is a type of recurrent neural network that excels at handling sequential data and capturing long-term dependencies.
 
@@ -144,149 +137,9 @@ Here's how it works:
 
 8. **Entry and Exit Signals**: we use the predicted target score and set thresholds to determine when to enter or exit a trade.
 
-## Why It Works
-
-Using a multi-factor target score allows the strategy to consider multiple aspects of the market simultaneously, leading to more robust and informed decision-making.
-
-By reducing noise and focusing on the most relevant information, the target score helps the LSTM model learn from a cleaner and more meaningful signal, filtering out the distractions and focusing on what really matters.
-
-The dynamic weighting and market regime filters make the strategy adaptable to changing market conditions. We want the strategy to `"think"` and adjust to new situations.
-
-
-```python
-# Step 0: Calculate new indicators
-dataframe['ma'] = ta.SMA(dataframe, timeperiod=10)
-dataframe['roc'] = ta.ROC(dataframe, timeperiod=2)
-dataframe['macd'], dataframe['macdsignal'], dataframe['macdhist'] = ta.MACD(dataframe['close'], slowperiod=12,
-                                                                            fastperiod=26)
-dataframe['momentum'] = ta.MOM(dataframe, timeperiod=4)
-dataframe['rsi'] = ta.RSI(dataframe, timeperiod=10)
-bollinger = ta.BBANDS(dataframe, timeperiod=20)
-dataframe['bb_upperband'] = bollinger['upperband']
-dataframe['bb_middleband'] = bollinger['middleband']
-dataframe['bb_lowerband'] = bollinger['lowerband']
-dataframe['cci'] = ta.CCI(dataframe, timeperiod=20)
-dataframe['stoch'] = ta.STOCH(dataframe)['slowk']
-dataframe['atr'] = ta.ATR(dataframe, timeperiod=14)
-dataframe['obv'] = ta.OBV(dataframe)
-
-# Step 1: Normalize Indicators:
-# Why? Normalizing the indicators will make them comparable and allow us to assign weights to them.
-# How? We will calculate the z-score of each indicator by subtracting the rolling mean and dividing by the
-# rolling standard deviation. This will give us a normalized value that is centered around 0 with a standard
-# deviation of 1.
-dataframe['normalized_stoch'] = (dataframe['stoch'] - dataframe['stoch'].rolling(window=14).mean()) / dataframe[
-    'stoch'].rolling(window=14).std()
-dataframe['normalized_atr'] = (dataframe['atr'] - dataframe['atr'].rolling(window=14).mean()) / dataframe[
-    'atr'].rolling(window=14).std()
-dataframe['normalized_obv'] = (dataframe['obv'] - dataframe['obv'].rolling(window=14).mean()) / dataframe[
-    'obv'].rolling(window=14).std()
-dataframe['normalized_ma'] = (dataframe['close'] - dataframe['close'].rolling(window=10).mean()) / dataframe[
-    'close'].rolling(window=10).std()
-dataframe['normalized_macd'] = (dataframe['macd'] - dataframe['macd'].rolling(window=26).mean()) / dataframe[
-    'macd'].rolling(window=26).std()
-dataframe['normalized_roc'] = (dataframe['roc'] - dataframe['roc'].rolling(window=2).mean()) / dataframe[
-    'roc'].rolling(window=2).std()
-dataframe['normalized_momentum'] = (dataframe['momentum'] - dataframe['momentum'].rolling(window=4).mean()) / \
-                                   dataframe['momentum'].rolling(window=4).std()
-dataframe['normalized_rsi'] = (dataframe['rsi'] - dataframe['rsi'].rolling(window=10).mean()) / dataframe[
-    'rsi'].rolling(window=10).std()
-dataframe['normalized_bb_width'] = (dataframe['bb_upperband'] - dataframe['bb_lowerband']).rolling(
-    window=20).mean() / (dataframe['bb_upperband'] - dataframe['bb_lowerband']).rolling(window=20).std()
-dataframe['normalized_cci'] = (dataframe['cci'] - dataframe['cci'].rolling(window=20).mean()) / dataframe[
-    'cci'].rolling(window=20).std()
-
-# Dynamic Weights (Example: Increase the weight of momentum in a strong trend)
-trend_strength = abs(dataframe['ma'] - dataframe['close'])
-
-# Calculate the rolling mean and standard deviation of the trend strength to determine a strong trend
-# The threshold is set to 1.5 times the standard deviation above the mean, but can be adjusted as needed
-strong_trend_threshold = trend_strength.rolling(window=14).mean() + 1.5 * trend_strength.rolling(
-    window=14).std()
-
-# Assign a higher weight to momentum if the trend is strong
-is_strong_trend = trend_strength > strong_trend_threshold
-
-# Assign the dynamic weights to the dataframe
-dataframe['w_momentum'] = np.where(is_strong_trend, self.w3.value * 1.5, self.w3.value)
-
-# Step 2: Calculate aggregate score S
-w = [self.w0.value, self.w1.value, self.w2.value, self.w3.value, self.w4.value, self.w5.value,
-     self.w6.value, self.w7.value, self.w8.value]
-
-dataframe['S'] = w[0] * dataframe['normalized_ma'] + w[1] * dataframe['normalized_macd'] + w[2] * dataframe[
-    'normalized_roc'] + w[3] * dataframe['normalized_rsi'] + w[4] * \
-                 dataframe['normalized_bb_width'] + w[5] * dataframe['normalized_cci'] + dataframe[
-                     'w_momentum'] * dataframe['normalized_momentum'] + self.w8.value * dataframe[
-                     'normalized_stoch'] + self.w7.value * dataframe['normalized_atr'] + self.w6.value * \
-                 dataframe['normalized_obv']
-
-# Step 3: Market Regime Filter R
-# EXPLANATION: If the price is above the upper Bollinger Band, assign a value
-# of 1 to R. If the price is below the lower Bollinger Band, assign a value of -1 to R. Otherwise,
-# the value R stays 0.
-# What's basically happening here is that we are assigning a value of 1 to R when
-# the price is in the upper band, -1 when the price is in the lower band, and 0 when the price is in the
-# middle band. This is a simple way to determine the market regime based on Bollinger Bands. What is market
-# regime? Market regime is the state of the market. It can be trending, ranging, or reversing. So we are
-# using Bollinger Bands to determine the market regime. You can use other indicators to determine the market
-# regime as well. For example, you can use moving averages, RSI, MACD, etc.
-dataframe['R'] = 0
-dataframe.loc[(dataframe['close'] > dataframe['bb_middleband']) & (
-        dataframe['close'] > dataframe['bb_upperband']), 'R'] = 1
-dataframe.loc[(dataframe['close'] < dataframe['bb_middleband']) & (
-        dataframe['close'] < dataframe['bb_lowerband']), 'R'] = -1
-
-# Additional Market Regime Filter based on long-term MA
-dataframe['ma_100'] = ta.SMA(dataframe, timeperiod=100)
-dataframe['R2'] = np.where(dataframe['close'] > dataframe['ma_100'], 1, -1)
-
-# Step 4: Volatility Adjustment V
-# EXPLANATION: Calculate the Bollinger Band width and assign it to V. The Bollinger Band width is the
-# difference between the upper and lower Bollinger Bands divided by the middle Bollinger Band. The idea is
-# that when the Bollinger Bands are wide, the market is volatile, and when the Bollinger Bands are narrow,
-# the market is less volatile. So we are using the Bollinger Band width as a measure of volatility. You can
-# use other indicators to measure volatility as well. For example, you can use the ATR (Average True Range)
-bb_width = (dataframe['bb_upperband'] - dataframe['bb_lowerband']) / dataframe['bb_middleband']
-dataframe['V'] = 1 / bb_width  # example, assuming V is inversely proportional to BB width
-
-# Another Volatility Adjustment using ATR
-dataframe['V2'] = 1 / dataframe['atr']
-
-# Get Final Target Score to incorporate new calculations
-dataframe['T'] = dataframe['S'] * dataframe['R'] * dataframe['V'] * dataframe['R2'] * dataframe['V2']
-
-# Assign the target score T to the AI target column
-dataframe['&-target'] = dataframe['T']
-```
-
-## Putting It All Together
-
-In a nutshell, by calculating and normalizing indicators, applying dynamic weighting, considering market regimes, adjusting for volatility, and using a multi-factor target score, the strategy provides a comprehensive and efficient signal for the LSTM model to learn from.
-
-It's a powerful combination of technical analysis, adaptability, and deep learning that aims to navigate the market effectively and make profitable trading decisions.
-
-
-## Challenges and Future Improvements
-
-One of the challenges are ensuring model is not overfitting. We mitigated that using dropout layers, regularization, adjusting the number of layers and neurons, and tuning the number of epochs.
-
-Another challenge is to avoid trading on noise. This can be addressed by using a threshold and weights, to filter out the noise or by employing dissimilarity measures.
-
-With the right hyperparameters and the hardware like M1 Max / RTX3070 , the model achieved an accuracy of >90.0% on a small dataset of 120 days on backtesting using minimal config and trying hard to avoid overfitting.
-
-![](https://private-user-images.githubusercontent.com/45298885/335341423-b54c065b-0429-485b-9c70-2184f12692cd.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MTczMzExNjYsIm5iZiI6MTcxNzMzMDg2NiwicGF0aCI6Ii80NTI5ODg4NS8zMzUzNDE0MjMtYjU0YzA2NWItMDQyOS00ODViLTljNzAtMjE4NGYxMjY5MmNkLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDA2MDIlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwNjAyVDEyMjEwNlomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTdjMzg0OTNjZGRjOTk0N2M4MzE5OTgyZjhkMTM2ZDViYWVjZTY5MjRjZWNmZjY5ODI0YTZmMjQxM2FhN2Q5MTEmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.NFmDQ1xFgWZvejd9lVsyI_afSoYx3dOY9rjUd0ASC2g)
-
-Backtest result on two pairs, with the new and improved PyTorch model.
-
-
-![](https://private-user-images.githubusercontent.com/45298885/335342184-3b27d994-3bc3-4ea1-ba68-e252a0a03aa2.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MTczMzExNjYsIm5iZiI6MTcxNzMzMDg2NiwicGF0aCI6Ii80NTI5ODg4NS8zMzUzNDIxODQtM2IyN2Q5OTQtM2JjMy00ZWExLWJhNjgtZTI1MmEwYTAzYWEyLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDA2MDIlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwNjAyVDEyMjEwNlomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTc0NGQyZDFlNTIyZjkzMThhM2M4MjczY2ExOTRkOTg3NGMxMWM5YTJlODFhMjU3MWI3ZjVlMWRlODZlMTk4M2UmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.tx5qNJawxJYRYNrttHh4Vf_5vK_qle019s7TOBMblOI)
-
-Daily returns on two pairs over march 2024. The model is fairly strict and doesn't generate a lot of signals. 
-
 ## Contributing
 
 Contributions to the project are welcome! If you find any issues or have suggestions for improvements, please open an
-issue or submit a pull request on the [GitHub repository](https://github.com/netanelshoshan/freqAI-LSTM).
+issue or submit a pull request on the [GitHub repository](https://github.com/AlexCryptoKing/freqailstm.git).
 
 
