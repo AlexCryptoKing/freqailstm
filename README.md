@@ -54,7 +54,7 @@ freqtrade backtesting -c user_data/config-torch.json --breakdown day week month 
 1. Clone the repository
 
 ```shell
-git clone [https://github.com/Netanelshoshan/freqAI-LSTM.git](https://github.com/AlexCryptoKing/freqailstm.git)
+git clone [https://github.com/AlexCryptoKing/freqailstm.git]
 ```
 2. Build local docker images
 
