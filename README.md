@@ -137,6 +137,89 @@ Here's how it works:
 
 8. **Entry and Exit Signals**: we use the predicted target score and set thresholds to determine when to enter or exit a trade.
 
+## Recommended Docker Workflow
+
+This section outlines a recommended workflow for using FreqAI with Docker, including continuous trading, hyperparameter optimization, and model updates.
+
+1. **Setup**
+   - Run Freqtrade in Docker with the `user_data` directory mounted to a local volume.
+   - Keep the bot continuously in trading mode.
+
+2. **Regular Updates**
+   - Every few hours or daily:
+     - Use Freqtrade to download fresh data
+     - Launch a separate instance in hyperopt mode.
+
+3. **Hyperopt Configuration**
+   - Use an additional `--config` argument to modify the `freqai.identifier` value.
+   - Remove existing directory if needed and set a different database location.
+   - This allows hyperopt to run and update the JSON without disrupting the active trading bot.
+
+4. **Applying New Settings**
+   - After hyperopt, restart the trading bot to apply the new hyperopt settings.
+
+5. **Model Regeneration**
+   - Clear the training models whenever restarting the Docker container to ensure they are regenerated at startup.
+
+### Example Configuration Files
+
+#### docker-compose.yml
+```yaml
+services:
+  freqai:
+    image: freqai
+    build:
+      context: .
+      dockerfile: "./torch/Dockerfile"
+    restart: unless-stopped
+    container_name: freqai
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+    ports:
+      - 8080:8080
+    command: >
+      trade
+      --logfile /freqtrade/user_data/logs/freqai.log
+      --freqaimodel PyTorchLSTMRegressor
+      --db-url sqlite:////freqtrade/user_data/freqai.sqlite
+      --config /freqtrade/user_data/config-torch.json
+      --strategy ExampleLSTMStrategy
+```
+
+#### hyperopt.json
+```json
+{
+  "freqai": {
+    "identifier": "alex-hyperopt"
+  }
+}
+```
+
+#### update.sh
+```bash
+#!/bin/bash
+
+last_month=$(date +%Y%m%d -d '1 month ago')
+yesterday=$(date +%Y%m%d -d '1 day ago')
+
+docker compose run --rm freqai download-data --exchange bybit -t 15m 30m 1h 2h 4h 6h 12h 1d 1w 1M --timerange=20240101- --config /freqtrade/user_data/config-torch.json
+
+rm -rf user_data/models/alex-hyperopt
+
+docker compose run --rm freqai hyperopt \
+  --enable-protections \
+  -j 3 \
+  --timerange=${last_month}-${yesterday} \
+  -e 800 \
+  --hyperopt-loss SharpeHyperOptLossDaily \
+  --starting-balance 1000 \
+  --config /freqtrade/user_data/config-torch.json \
+  --config /freqtrade/user_data/hyperopt.json \
+  --freqaimodel PyTorchLSTMRegressor
+```
+
+Note: The number of jobs (`-j 3`) is limited due to RAM constraints. Adjust as needed for your system.
+
 ## Contributing
 
 Contributions to the project are welcome! If you find any issues or have suggestions for improvements, please open an
