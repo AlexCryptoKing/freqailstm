@@ -24,7 +24,7 @@ cp torch/BasePyTorchModel.py <freqtrade dir>/freqtrade/freqai/base_models/
 cp torch/PyTorchLSTMModel.py <freqtrade dir >/freqtrade/freqai/torch/
 cp torch/PyTorchModelTrainer.py <freqtrade dir>/freqtrade/freqai/torch/
 cp torch/PyTorchLSTMRegressor.py <freqtrade dir>/user_data/freqaimodels/
-cp config-torch-example.json <freqtrade dir>/user_data/config.json
+cp config-torch_example.json <freqtrade dir>/user_data/config.json
 cp ExampleLSTMStrategy.py <freqtrade dir>/user_data/strategies/
 ```
 3. Download the data minimum 1 Month!
