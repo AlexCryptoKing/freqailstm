@@ -1,0 +1,8 @@
+Changelog on Version 9 1h Timeframe (you can adjust and make tests)
+many impacts from our community thanks for that
+Correction Market Regime Filter added ma100
+Correction Dynamic Whights Adjustment
+Correction Volatility Adjustment V
+Stop Loss
+Removed do_predict on exit values
+You can use Trailing, but my tests results where better without the Trailing!!
