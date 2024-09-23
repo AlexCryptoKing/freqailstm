@@ -19,8 +19,6 @@ RUN pip install --no-cache-dir optuna \
 ADD --keep-git-dir=true https://github.com/AlexCryptoKing/freqailstm.git /freqtrade
 WORKDIR /freqtrade
 
-
-
 # Ensure the correct permissions are set for the copied files
 RUN chown -R ftuser:ftuser /freqtrade
 
@@ -32,6 +30,14 @@ RUN freqtrade install-ui
 
 # Set Freqtrade as the default entrypoint
 ENTRYPOINT ["freqtrade"]
+
+RUN cp torch/BasePyTorchModel.py /freqtrade/freqtrade/freqai/base_models/ \
+    && cp torch/PyTorchLSTMModel.py /freqtrade/freqtrade/freqai/torch/ \
+    && cp torch/PyTorchModelTrainer.py /freqtrade/freqtrade/freqai/torch/ \
+    && cp torch/PyTorchLSTMRegressor.py /freqtrade/user_data/freqaimodels/ \
+    && cp torch/PyTorchLSTMRegressor_Cuda.py /freqtrade/user_data/freqaimodels/
+
+	
 
 # Default command to start in 'trade' mode
 CMD ["trade"]
