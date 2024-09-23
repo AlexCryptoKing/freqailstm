@@ -59,13 +59,7 @@ COPY --chown=ftuser:ftuser . /freqtrade/
 RUN pip install -e . --user --no-cache-dir --no-build-isolation \
   && mkdir /freqtrade/user_data/ \
   && freqtrade install-ui
-  && cp config-torch_example.json /freqtrade/user_data/config-torch.json \
-  && cp ExampleLSTMStrategy.py /freqtrade/user_data/strategies/ \
-  && cp torch/BasePyTorchModel.py /freqtrade/freqtrade/freqai/base_models/ \
-  && cp torch/PyTorchLSTMModel.py /freqtrade/freqtrade/freqai/torch/ \
-  && cp torch/PyTorchModelTrainer.py /freqtrade/freqtrade/freqai/torch/ \
-  && cp torch/PyTorchLSTMRegressor.py /freqtrade/user_data/freqaimodels/ \
-  && cp torch/PyTorchLSTMRegressor_Cuda.py /freqtrade/user_data/freqaimodels/
+
   
 ENTRYPOINT ["freqtrade"]
 # Default to trade mode
