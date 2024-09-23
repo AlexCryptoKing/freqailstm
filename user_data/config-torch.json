@@ -46,7 +46,7 @@
         "order_book_top": 1
     },
     "exchange": {
-        "name": "",
+        "name": "bybit",
         "sandbox": false,
         "key": "",
         "secret": "",
