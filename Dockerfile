@@ -64,7 +64,7 @@ RUN pip install -e . --user --no-cache-dir --no-build-isolation \
   && cp torch/BasePyTorchModel.py /freqtrade/freqtrade/freqai/base_models/ \
   && cp torch/PyTorchLSTMModel.py /freqtrade/freqtrade/freqai/torch/ \
   && cp torch/PyTorchModelTrainer.py /freqtrade/freqtrade/freqai/torch/ \
-  && cp torch/PyTorchLSTMRegressor.py /freqtrade/user_data/freqaimodels/
+  && cp torch/PyTorchLSTMRegressor.py /freqtrade/user_data/freqaimodels/ \
   && cp torch/PyTorchLSTMRegressor_Cuda.py /freqtrade/user_data/freqaimodels/
   
 ENTRYPOINT ["freqtrade"]
