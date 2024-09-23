@@ -1,66 +1,38 @@
-FROM python:3.12.6-slim-bookworm as base
+# Use Freqtrade's base image for FreqAI RL
+FROM freqtradeorg/freqtrade:develop_freqairl
 
-# Setup env
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONFAULTHANDLER 1
-ENV PATH=/home/ftuser/.local/bin:$PATH
-ENV FT_APP_ENV="docker"
+# Set user to root for installing additional dependencies
+USER root
 
-# Prepare environment
-RUN mkdir /freqtrade \
-  && apt-get update \
-  && apt-get -y install sudo libatlas3-base curl sqlite3 libhdf5-serial-dev libgomp1 \
-  && apt-get clean \
-  && useradd -u 1000 -G sudo -U -m -s /bin/bash ftuser \
-  && chown ftuser:ftuser /freqtrade \
-  # Allow sudoers
-  && echo "ftuser ALL=(ALL) NOPASSWD: /bin/chown" >> /etc/sudoers
+# Copy any additional requirements (if needed)
+#COPY requirements-freqai.txt requirements-freqai-rl.txt /freqtrade/
 
-WORKDIR /freqtrade
+# Install additional dependencies via pip
+RUN pip install --no-cache-dir optuna \
+  && pip install --no-cache-dir torch \
+  && pip install --no-cache-dir sb3_contrib \
+  && pip install --no-cache-dir datasieve
 
-# Install dependencies
-FROM base as python-deps
-RUN  apt-get update \
-  && apt-get -y install build-essential libssl-dev git libffi-dev libgfortran5 pkg-config cmake gcc \
-  && apt-get clean \
-  && pip install --upgrade pip wheel
+# Copy the custom models and strategy files
+COPY config-torch_example.json /freqtrade/user_data/config-torch.json
+COPY V9/AlexStrategyFinalV90.py /freqtrade/user_data/strategies/
+COPY torch/BasePyTorchModel.py /freqtrade/freqtrade/freqai/base_models/
+COPY torch/PyTorchLSTMModel.py /freqtrade/freqtrade/freqai/torch/
+COPY torch/PyTorchModelTrainer.py /freqtrade/freqtrade/freqai/torch/
+COPY torch/PyTorchLSTMRegressor.py /freqtrade/user_data/freqaimodels/
+COPY torch/PyTorchLSTMRegressor_Cuda.py /freqtrade/user_data/freqaimodels/
 
-# Install TA-lib
-COPY build_helpers/* /tmp/
-RUN cd /tmp && /tmp/install_ta-lib.sh && rm -r /tmp/*ta-lib*
-ENV LD_LIBRARY_PATH /usr/local/lib
+# Ensure the correct permissions are set for the copied files
+RUN chown -R ftuser:ftuser /freqtrade
 
-# Install dependencies
-COPY --chown=ftuser:ftuser requirements.txt requirements-hyperopt.txt /freqtrade/
+# Switch back to the ftuser for runtime
 USER ftuser
-RUN  pip install --user --no-cache-dir "numpy<2.0" \
-  && pip install --user --no-cache-dir -r requirements-hyperopt.txt \
-  && pip install --user --no-cache-dir -r requirements-freqai.txt \
-  && pip install --user --no-cache-dir -r requirements-freqai-rl.txt \
-  && pip install --user --no-cache-dir datasieve \
-  && pip install --user --no-cache-dir torch \
-  && pip install --user --no-cache-dir sb3_contrib \
-  && pip install --user --no-cache-dir optuna  # Install Optuna here
-  
 
-# Copy dependencies to runtime-image
-FROM base as runtime-image
-COPY --from=python-deps /usr/local/lib /usr/local/lib
-ENV LD_LIBRARY_PATH /usr/local/lib
+# Install and initialize Freqtrade UI
+RUN freqtrade install-ui
 
-COPY --from=python-deps --chown=ftuser:ftuser /home/ftuser/.local /home/ftuser/.local
-
-USER ftuser
-# Install and execute
-COPY --chown=ftuser:ftuser . /freqtrade/
-
-RUN pip install -e . --user --no-cache-dir --no-build-isolation \
-  && mkdir /freqtrade/user_data/ \
-  && freqtrade install-ui
-
-  
+# Set Freqtrade as the default entrypoint
 ENTRYPOINT ["freqtrade"]
-# Default to trade mode
-CMD [ "trade" ]
+
+# Default command to start in 'trade' mode
+CMD ["trade"]
