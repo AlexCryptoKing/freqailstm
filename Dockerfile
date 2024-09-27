@@ -32,13 +32,15 @@ RUN freqtrade install-ui
 # Set Freqtrade as the default entrypoint
 ENTRYPOINT ["freqtrade"]
 
-RUN cp torch/BasePyTorchModel.py /freqtrade/freqtrade/freqai/base_models/ \
+RUN mkdir -p /freqtrade/user_data/strategies /freqtrade/user_data/freqaimodels \
+	&& cp torch/BasePyTorchModel.py /freqtrade/freqtrade/freqai/base_models/ \
     && cp torch/PyTorchLSTMModel.py /freqtrade/freqtrade/freqai/torch/ \
     && cp torch/PyTorchModelTrainer.py /freqtrade/freqtrade/freqai/torch/ \
     && cp torch/PyTorchLSTMRegressor.py /freqtrade/user_data/freqaimodels/ \
-    && cp torch/PyTorchLSTMRegressor_Cuda.py /freqtrade/user_data/freqaimodels/
-    && cp config/config-torch /freqtrade/user_data/ \
-    && cp user_data/V9/* /freqtrade/user_data/strategies/
+    && cp torch/PyTorchLSTMRegressor_Cuda.py /freqtrade/user_data/freqaimodels/ \
+    && cp config/config-torch.json /freqtrade/user_data/ \
+    && cp V9/* /freqtrade/user_data/strategies/
+
 
 
 # Default command to start in 'trade' mode
