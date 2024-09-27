@@ -37,7 +37,7 @@ RUN cp torch/BasePyTorchModel.py /freqtrade/freqtrade/freqai/base_models/ \
     && cp torch/PyTorchModelTrainer.py /freqtrade/freqtrade/freqai/torch/ \
     && cp torch/PyTorchLSTMRegressor.py /freqtrade/user_data/freqaimodels/ \
     && cp torch/PyTorchLSTMRegressor_Cuda.py /freqtrade/user_data/freqaimodels/
-    && cp user_data/config-torch /freqtrade/user_data/ \
+    && cp config/config-torch /freqtrade/user_data/ \
     && cp user_data/V9/* /freqtrade/user_data/strategies/
 
 
