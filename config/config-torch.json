@@ -1,0 +1,264 @@
+{
+    "trading_mode": "futures",
+    "margin_mode": "isolated",
+    "max_open_trades": 5,
+    "stake_currency": "USDT",
+    "stake_amount": 2,
+    "tradable_balance_ratio": 0.9,
+    "dry_run_wallet": 100,
+    "fiat_display_currency": "USD",
+    "strategy": "ExampleLSTMStrategy",
+    "freqaimodel": "PyTorchLSTMRegressor",
+    "dataformat_ohlcv": "json",
+    "dataformat_trades": "jsongz",
+    "timeframe": "15m",
+    "stoploss_on_exchange": true,
+    "dry_run": false,
+    "cancel_open_orders_on_exit": false,
+    "unfilledtimeout": {
+        "unit": "minutes",
+        "entry": 10,
+        "exit": 30
+    },
+    "order_types": {
+        "entry": "market",
+        "exit": "market",
+        "emergency_exit": "market",
+        "force_entry": "market",
+        "force_exit": "market",
+        "stoploss": "market",
+        "stoploss_on_exchange": false,
+        "stoploss_on_exchange_interval": 60
+    },
+    "entry_pricing": {
+        "price_side": "other",
+        "ask_last_balance": 0,
+        "use_order_book": true,
+        "order_book_top": 1,
+        "check_depth_of_market": {
+            "enabled": false,
+            "bids_to_ask_delta": 1
+        }
+    },
+    "exit_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+    "exchange": {
+        "name": "bybit",
+        "sandbox": false,
+        "key": "",
+        "secret": "",
+        "ccxt_config": {
+            "enableRateLimit": true
+        },
+        "ccxt_async_config": {
+            "enableRateLimit": true,
+            "rateLimit": 200
+        },
+        "pair_whitelist": [
+            "ETH/USDT:USDT",
+            "BTC/USDT:USDT",
+            "1000PEPE/USDT:USDT",
+            "SOL/USDT:USDT",
+            "PEOPLE/USDT:USDT",
+            "ETHFI/USDT:USDT",
+            "EDU/USDT:USDT",
+            "ETC/USDT:USDT",
+            "XRP/USDT:USDT",
+            "1000BONK/USDT:USDT",
+            "BNB/USDT:USDT",
+            "WIF/USDT:USDT",
+            "ARB/USDT:USDT",
+            "ENA/USDT:USDT",
+            "OP/USDT:USDT",
+            "NEAR/USDT:USDT",
+            "WLD/USDT:USDT",
+            "ENS/USDT:USDT",
+            "BOME/USDT:USDT",
+            "ORDI/USDT:USDT",
+            "AVAX/USDT:USDT",
+            "ONDO/USDT:USDT",
+            "LINK/USDT:USDT",
+            "MATIC/USDT:USDT",
+            "LDO/USDT:USDT",
+            "FIL/USDT:USDT",
+            "ADA/USDT:USDT",
+            "GALA/USDT:USDT",
+            "1000FLOKI/USDT:USDT"
+        ],
+        "pair_blacklist": [
+            "TFUEL/BTC",
+            "ONE/BTC",
+            "ATOM/BTC",
+            "XMR/BTC",
+            "BNB/BUSD",
+            "BNB/BTC",
+            "BNB/ETH",
+            "BNB/EUR",
+            "BNB/NGN",
+            "BNB/PAX",
+            "BNB/RUB",
+            "BNB/TRY",
+            "BNB/TUSD",
+            "BNB/USDC",
+            "BNB/USDS",
+            "EUR/USDT:USDT",
+            ".*UP/USDT:USDT",
+            ".*DOWN/USDT:USDT",
+            ".*BEAR/USDT:USDT",
+            ".*BULL/USDT:USDT",
+            "DOGE/USDT:USDT",
+            "BRD/BTC"
+        ]
+    },
+    "pairlists": [
+        {
+            "method": "StaticPairList"
+        }
+    ],
+    "edge": {
+        "enabled": false,
+        "process_throttle_secs": 3600,
+        "calculate_since_number_of_days": 7,
+        "allowed_risk": 0.01,
+        "stoploss_range_min": -0.01,
+        "stoploss_range_max": -0.1,
+        "stoploss_range_step": -0.01,
+        "minimum_winrate": 0.6,
+        "minimum_expectancy": 0.2,
+        "min_trade_number": 10,
+        "max_trade_duration_minute": 1440,
+        "remove_pumps": false
+    },
+    "telegram": {
+        "enabled": false,
+        "token": "",
+        "chat_id": "",
+        "keyboard": [
+            ["/daily", "/stats", "/balance", "/profit"],
+            ["/status table", "/performance"],
+            ["/reload_config", "/count", "/logs"]
+        ],
+        "notification_settings": {
+            "status": "silent",
+            "protection_trigger_global": "on",
+            "warning": "on",
+            "startup": "off",
+            "entry": "silent",
+            "entry_fill": "on",
+            "entry_cancel": "on",
+            "exit_cancel": "on",
+            "exit_fill": "on",
+            "exit": {
+                "roi": "silent",
+                "emergency_exit": "silent",
+                "force_exit": "silent",
+                "exit_signal": "silent",
+                "trailing_stop_loss": "silent",
+                "stop_loss": "silent",
+                "stoploss_on_exchange": "silent",
+                "custom_exit": "silent"
+            },
+            "strategy_msg": "silent"
+        },
+        "balance_dust_level": 0.01
+    },
+    "freqai": {
+        "enabled": true,
+        "identifier": "torch-lstm12",
+        "train_period_days": 30,
+        "fit_live_predictions_candles": 24,
+        "backtest_period_days": 7,
+        "expiration_hours": 1,
+        "live_retrain_hours": 1,
+        "purge_old_models": 2,
+        "save_backtest_models": true,
+        "write_metrics_to_disk": true,
+        "activate_tensorboard": false,
+        "feature_parameters": {
+            "include_corr_pairlist": [
+                "BTC/USDT:USDT",
+                "ETH/USDT:USDT"
+            ],
+            "include_timeframes": [
+                "15m"
+            ],
+            "label_period_candles": 24,
+            "include_shifted_candidates": 2,
+            "DI_threshold": 10,
+            "weight_factor": 0.5,
+            "indicator_periods_candles": [
+                10,
+                20
+            ],
+            "noise_standard_deviation": 0.01,
+            "buffer_train_data_candles": 20
+        },
+        "data_split_parameters": {
+            "test_size": 0.2,
+            "random_state": 42,
+            "shuffle": false
+        },
+        "model_training_parameters": {
+            "learning_rate": 3e-3,
+            "trainer_kwargs": {
+                "n_steps": null,
+                "batch_size": 32,
+                "n_epochs": 10
+            },
+            "model_kwargs": {
+                "num_lstm_layers": 3,
+                "hidden_dim": 128,
+                "dropout_percent": 0.4,
+                "window_size": 5
+            }
+        },
+        "rl_config": {
+            "train_cycles": 25,
+            "add_state_info": true,
+            "max_trade_duration_candles": 300,
+            "max_training_drawdown_pct": 0.02,
+            "cpu_count": 8,
+            "model_type": "PPO",
+            "policy_type": "MlpPolicy",
+            "model_reward_parameters": {
+                "rr": 1,
+                "profit_aim": 0.025
+            }
+        }
+    },
+    "api_server": {
+        "enabled": true,
+        "listen_ip_address": "0.0.0.0",
+        "listen_port": 9000,
+        "verbosity": "error",
+        "enable_openapi": false,
+        "jwt_secret_key": "",
+        "ws_token": "",
+        "CORS_origins": [],
+        "username": "",
+        "password": ""
+    },
+    "bot_name": "",
+    "initial_state": "running",
+    "force_entry_enable": false,
+    "internals": {
+        "process_throttle_secs": 5
+    },
+    "margin": {
+        "enabled": true,
+        "leverage": 7.0
+    },
+    "logging": {
+        "loglevel": "DEBUG",
+        "logfile": "/freqtrade/user_data/logs/freqtrade.log"
+    },
+    "logger": {
+        "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        "level": "INFO",
+        "file": "/path/to/logfile.log",
+        "tensorboard": true
+    }
+}
