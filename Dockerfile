@@ -5,6 +5,10 @@ FROM freqtradeorg/freqtrade:stable_freqairl
 # Set user to root for installing additional dependencies
 USER root
 
+RUN git clone https://github.com/AlexCryptoKing/freqailstm.git /freqtrade
+#ADD --keep-git-dir=true https://github.com/AlexCryptoKing/freqailstm.git /freqtrade
+WORKDIR /freqtrade
+
 # Copy any additional requirements (if needed)
 #COPY requirements-freqai.txt requirements-freqai-rl.txt /freqtrade/
 
@@ -17,9 +21,7 @@ RUN pip install --no-cache-dir optuna \
   && pip install --no-cache-dir sb3_contrib \
   && pip install --no-cache-dir datasieve
 
-#RUN git clone https://github.com/AlexCryptoKing/freqailstm.git /freqtrade
-#ADD --keep-git-dir=true https://github.com/AlexCryptoKing/freqailstm.git /freqtrade
-WORKDIR /freqtrade
+
 
 # Ensure the correct permissions are set for the copied files
 RUN chown -R ftuser:ftuser /freqtrade
