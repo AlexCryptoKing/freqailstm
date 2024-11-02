@@ -17,7 +17,8 @@ RUN pip install --no-cache-dir optuna \
   && pip install --no-cache-dir sb3_contrib \
   && pip install --no-cache-dir datasieve
 
-ADD --keep-git-dir=true https://github.com/AlexCryptoKing/freqailstm.git /freqtrade
+RUN git clone https://github.com/AlexCryptoKing/freqailstm.git /freqtrade
+#ADD --keep-git-dir=true https://github.com/AlexCryptoKing/freqailstm.git /freqtrade
 WORKDIR /freqtrade
 
 # Ensure the correct permissions are set for the copied files
