@@ -143,8 +143,10 @@ Here's how it works:
 8. **Entry and Exit Signals**: we use the predicted target score and set thresholds to determine when to enter or exit a trade.
 
 ## Contributing
+
 [Contact me on Telegram](https://t.me/alex15_08)
-JOIN MY DISCORD - https://discord.gg/vfJQ5pftwX
+
+JOIN MY DISCORD - [Click here to join](https://discord.gg/vfJQ5pftwX)
 
 
 Contributions to the project are welcome! If you find any issues or have suggestions for improvements, please open an
