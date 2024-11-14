@@ -143,11 +143,10 @@ Here's how it works:
 8. **Entry and Exit Signals**: we use the predicted target score and set thresholds to determine when to enter or exit a trade.
 
 ## Contributing
+Contacts: 
 
-[Contact me on Telegram](https://t.me/alex15_08)
-
-JOIN MY DISCORD - [Click here to join](https://discord.gg/vfJQ5pftwX)
-
+[![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/alex15_08)
+[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/vfJQ5pftwX)
 
 Contributions to the project are welcome! If you find any issues or have suggestions for improvements, please open an
 issue or submit a pull request on the [GitHub repository](https://github.com/AlexCryptoKing/freqailstm.git).
